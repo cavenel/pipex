@@ -117,11 +117,14 @@ def data_calculations():
     plt.close()
 
     #We calculate and plot the dendogram of the correlations clustermap
-    plt.figure()
-    sns_clustermap = sns.clustermap(df_corr, figsize=(image_size / 100,image_size / 140))
-    plt.savefig(os.path.join(data_folder, 'analysis', 'downstream', 'correlation_dendogram.jpg'))
-    plt.clf()
-    plt.close()
+    try:
+        plt.figure()
+        sns_clustermap = sns.clustermap(df_corr, figsize=(image_size / 100,image_size / 140))
+        plt.savefig(os.path.join(data_folder, 'analysis', 'downstream', 'correlation_dendogram.jpg'))
+        plt.clf()
+        plt.close()
+    except:
+        print ("Impossible to plot correlation_dendogram.jpg")
 
     columns = ['marker', 'num_cells', 'percent_cells_50+', 'mean', 'median', 'std', 'q10', 'q25', 'q50', 'q75', 'q90'] + markers
 

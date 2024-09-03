@@ -112,20 +112,24 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig, custom_img_orig):
                 if curr_detection.area > nuclei_area_limit:
                     sd_labels[sd_labels == curr_detection.label] = 0
 
-        im = PIL.Image.fromarray((render_label(sd_labels, img=None) * 255).astype(np.uint8))
-        im = im.convert('RGB')
+    im = PIL.Image.fromarray((render_label(sdLabels, img=None) * 255).astype(np.uint8))
+    im = im.convert('RGB')
+    try:
         im.save(os.path.join(data_folder, "analysis", "quality_control", "stardist_result.jpg"))
-        print(">>> Stardist base result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
+    except:
+        pass
+    print(">>> Stardist base result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
 
-        #if nuclei_expansion parameter is required, expand labelled regions (avoiding overlap) to specified size
-        if nuclei_expansion >= 0:
-            sd_labels_expanded = expand_labels(sd_labels, distance=nuclei_expansion)
+    #if nuclei_expansion parameter is required, expand labelled regions (avoiding overlap) to specified size
+    if nuclei_expansion >= 0:
+        sd_labels_expanded = expand_labels(sd_labels, distance=nuclei_expansion)
+        try:
             imsave(os.path.join(data_folder, "analysis", "quality_control", "stardist_result_expanded.jpg"), np.uint8(mark_boundaries(nuclei_img_orig, sd_labels_expanded) * 255))
-            print(">>> Stardist expanded result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
-        else:
-            sd_labels_expanded = sd_labels
+        except:
+            pass
+        print(">>> Stardist expanded result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
     else:
-        sd_labels_expanded = custom_img_orig
+        sd_labels_expanded = sd_labels
 
     affected_by_membrane = set()
     if membrane_diameter > 0 or custom_segmentation_type == "mem":
@@ -333,14 +337,17 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig, custom_img_orig):
 
     np.save(os.path.join(data_folder, 'analysis', 'segmentation_data.npy'), sd_labels_expanded)
     print(">>> Final joined segmentation result numpy binary data saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
-
-    imsave(os.path.join(data_folder, "analysis", "segmentation_mask_show.jpg"), np.uint8(mark_boundaries(nuclei_img_orig, sd_labels_expanded) * 255))
+    try:
+        imsave(os.path.join(data_folder, "analysis", "segmentation_mask_show.jpg"), np.uint8(mark_boundaries(nuclei_img_orig, sd_labels_expanded) * 255))
+    except:
+        pass
+    
     print(">>> Final joined segmentation result image over nuclei saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
 
-    sdLabels_expanded_binary = np.copy(sd_labels_expanded)
-    sdLabels_expanded_binary[sdLabels_expanded_binary > 0] = 1
-    imsave(os.path.join(data_folder, "analysis", "segmentation_binary_mask.tif"), np.uint8(sdLabels_expanded_binary * 255))
-    del sdLabels_expanded_binary
+    sdLabelsExpandedBinary = np.copy(sdLabelsExpanded)
+    sdLabelsExpandedBinary[sdLabelsExpandedBinary > 0] = 1
+    imsave(data_folder + "/analysis/segmentation_binary_mask.tif", np.uint8(sdLabelsExpandedBinary * 255))
+    del sdLabelsExpandedBinary
 
     if np.amax(sd_labels_expanded) <= 255:
         imsave(os.path.join(data_folder, "analysis", "segmentation_mask.tif"), np.uint8(sd_labels_expanded * 255))
