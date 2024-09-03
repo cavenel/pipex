@@ -78,6 +78,14 @@ tooltip_52 = '<optional, dilation of shapes in pixels>: \nexample -> 0'
 tooltip_53 = '<optional, number of datapoints used for smoothing the shapes>: \nexample -> 15'
 tooltip_54 = '<optional, "none"/"hilbert"/"greedy" optimization of cutting path between shapes> : example -> none'
 tooltip_55 = '<optional, nearest neighbour heuristic distance for merging shapes>: \nexample -> 300'
+tooltip_56 = '<optional, spot marker name before . in image file>: \nexample, from image filename "reg001_cyc008_ch003_DO.tif" -> DO'
+tooltip_57 = '<optional, voxel size in nm>: \nexample -> 103'
+tooltip_58 = '<optional, radius of the spot in nm>: \nexample -> 150'
+tooltip_59 = '<optional, alpha parameter for dense region decomposition>: \nexample -> 0.7'
+tooltip_60 = '<optional, beta parameter for dense region decomposition>: \nexample -> 1'
+tooltip_61 = '<optional, gamma parameter for dense region decomposition>: \nexample -> 0.5'
+tooltip_62 = '<optional, radius of the cluster in nm>: \nexample -> 350'
+tooltip_63 = '<optional, minimum number of spots in a cluster>: \nexample -> 4'
 
 
 
@@ -138,6 +146,18 @@ column = [[sg.Text('PIPEX data folder:', font='any 12'), sg.In(default_text=data
           [sg.Text('  - Included markers, comma-separated:',s=(35,1), pad=((20,0), (0,0))), sg.Input(default_text='',s=40,disabled=True, key='-QUPATH_MARKER-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_41)],
           [sg.Text('  - Cluster id column name:',s=(35,1), pad=((20,0), (0,0))), sg.Input(default_text='',s=20,disabled=True, key='-QUPATH_CLUID-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_10)],
           [sg.Text('  - Cluster color column name:',s=(35,1), pad=((20,0), (0,0))), sg.Input(default_text='',s=20,disabled=True, key='-QUPATH_CLUCOL-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_42)],
+          [sg.Text('_'*85)],
+          [sg.Checkbox('Dot extraction', font='any 12 bold', key='-BIGFISH-', enable_events=True)],
+          [sg.Text(' NOTE: requires previous \'Segmentation\' results', pad=((20,0), (0,0)))],
+          [sg.Text(' NOTE: requires previous \'Downstream analysis\' results', pad=((20,0), (0,0)))],
+          [sg.Text('  - Spot marker:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='AMY2A',s=20,disabled=True, key='-BIGFISH_SPOMAR-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_56)],
+          [sg.Text('  - Voxel size:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='103',s=20,disabled=True, key='-BIGFISH_VOXSIZ-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_57)],
+          [sg.Text('  - Spot radius:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='150',s=20,disabled=True, key='-BIGFISH_SPORAD-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_58)],
+          [sg.Text('  - Dense alpha:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='0.7',s=20,disabled=True, key='-BIGFISH_DENSALP-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_59)],
+          [sg.Text('  - Dense beta:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='1',s=20,disabled=True, key='-BIGFISH_DENSBET-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_60)],
+          [sg.Text('  - Dense gamma:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='5',s=20,disabled=True, key='-BIGFISH_DENSGAM-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_61)],
+          [sg.Text('  - Cluster radius:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='350',s=20,disabled=True, key='-BIGFISH_CLURAD-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_62)],
+          [sg.Text('  - Cluster min. spots:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='4',s=20,disabled=True, key='-BIGFISH_CLUMIN-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_63)],
           [sg.Text('_'*85)],
           [sg.Checkbox('Filter segmentation', font='any 12 bold', key='-FILTERED-', enable_events=True)],
           [sg.Text(' NOTE: requires previous \'Segmentation\' results', pad=((20,0), (0,0)))],
@@ -258,6 +278,15 @@ while True:
         window['-QUPATH_MARKER-'].update(disabled=(not values['-QUPATH-']))
         window['-QUPATH_CLUID-'].update(disabled=(not values['-QUPATH-']))
         window['-QUPATH_CLUCOL-'].update(disabled=(not values['-QUPATH-']))
+    if event == '-BIGFISH-':
+        window['-BIGFISH_SPOMAR-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_VOXSIZ-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_SPORAD-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_DENSALP-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_DENSBET-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_DENSGAM-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_CLURAD-'].update(disabled=(not values['-BIGFISH-']))
+        window['-BIGFISH_CLUMIN-'].update(disabled=(not values['-BIGFISH-']))
     if event == '-FILTERED-':
         window['-FILTERED_CLUFIL-'].update(disabled=(not values['-FILTERED-']))
         window['-FILTERED_FIELD-'].update(disabled=(not values['-FILTERED-']))
@@ -404,6 +433,18 @@ if values['-QUPATH-']:
     if (values['-QUPATH_CLUCOL-'] != ''):
         batch_list = (batch_list +
                       ' -cluster_color=' + values['-QUPATH_CLUCOL-'])
+
+if values['-BIGFISH-']:
+    batch_list = (batch_list + '\n' +
+        'dot_extraction.py -data=' + batch_data +
+        ' -spot_marker=' + values['-BIGFISH_SPOMAR-'] +
+        ' -voxel_size=' + values['-BIGFISH_VOXSIZ-'] +
+        ' -spot_radius=' + values['-BIGFISH_SPORAD-'] +
+        ' -dense_alpha=' + values['-BIGFISH_DENSALP-'] +
+        ' -dense_beta=' + values['-BIGFISH_DENSBET-'] +
+        ' -dense_gamma=' + values['-BIGFISH_DENSGAM-'] +
+        ' -cluster_radius=' + values['-BIGFISH_CLURAD-'] +
+        ' -cluster_min_spots=' + values['-BIGFISH_CLUMIN-'])
 
 if values['-FILTERED-']:
     batch_list = (batch_list + '\n' +
