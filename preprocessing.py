@@ -19,7 +19,7 @@ import scipy.stats as st
 
 
 PIL.Image.MAX_IMAGE_PIXELS = 10000000000
-data_folder = './data'
+data_folder = os.environ.get('PIPEX_DATA')
 
 thres_min = 0.0
 thres_max = 1.0
@@ -467,7 +467,7 @@ if __name__ =='__main__':
     gradient_data = []
     for file in sorted(os.listdir(data_folder)):
         file_path = data_folder + '/' + file
-        if fnmatch.fnmatch(file, '*Empty.*') or fnmatch.fnmatch(file, '*Blank.*') or os.path.isdir(file_path):
+        if fnmatch.fnmatch(file, '*Empty.*') or fnmatch.fnmatch(file, '*Blank.*') or fnmatch.fnmatch(file, '*.txt') or os.path.isdir(file_path):
             continue
 
         next_try = False

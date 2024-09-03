@@ -437,9 +437,9 @@ if __name__ =='__main__':
     if custom_segmentation == "":
         for file in os.listdir(data_folder):
             file_path = data_folder + '/' + file
-            if os.path.isdir(file_path):
-                continue
 
+            if fnmatch.fnmatch(file, '*Empty.*') or fnmatch.fnmatch(file, '*Blank.*') or fnmatch.fnmatch(file, '*.txt') or os.path.isdir(file_path):
+                continue
             next_try = False
             try:
                 with TiffFile(file_path) as tif:
@@ -547,7 +547,7 @@ if __name__ =='__main__':
     #calculating marker intensities per cell
     for file in os.listdir(data_folder):
         file_path = data_folder + '/' + file
-        if os.path.isdir(file_path):
+        if fnmatch.fnmatch(file, '*Empty.*') or fnmatch.fnmatch(file, '*Blank.*') or fnmatch.fnmatch(file, '*.txt') or os.path.isdir(file_path):
             continue
 
         next_try = False
