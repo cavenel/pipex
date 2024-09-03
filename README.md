@@ -170,7 +170,18 @@ There are currently available the following commands:
   - `-tile_percentage_overlap=<optional, tile size\'s percentage of surrounding overlap of each square tile segmented>` : example -> -tile_percentage_overlap=10. **OBS**: this is a pixel percentage size option as oposed as `-tile_overlap`
   - `-tile_relabel=<yes or no to relabel sequentially the tile segments>` : example -> -tile_relabel=no. **OBS**: special option to have the segments of each tile relabeled sequentially, which may be useful to have possible unique identifiers per tile
   - `-extend_tile=<yes or no to have bigger border tiles>` : example -> -extend_tile=no. **OBS**: special option to have the last right and bottom border tile of the image extended to reach their limit if the image length and width does not match an exact tile size multiplier
-  
+
+- `dot_extraction.py` : [BETA] extract dots using BigFish library. 
+  - `-data=</path/to/images/folder>` : example -> -data=/home/lab/pipeline/data. **OBS**: this is the data folder
+  - `-marker=<name before . in image file>` : example, from image filename "reg001_cyc001_ch001_DO.tif"-> -marker=DO
+  - `-voxel_size=<optional, size of the voxel in nm>` : example -> -voxel_size=103. **OBS**: this is the size of the voxel in nm
+  - `-spot_radius=<optional, radius of the spot in nm>` : example -> -spot_radius=150. **OBS**: this is the radius of the spot in nm
+  - `-cluster_radius=<optional, radius of the cluster in nm>` : example -> -cluster_radius=350. **OBS**: this is the radius of the cluster in nm
+  - `-cluster_nb_min_spots=<optional, minimum number of spots in a cluster>` : example -> -cluster_nb_min_spots=4. **OBS**: this is the minimum number of spots in a cluster
+  - `-dense_alpha=<optional, alpha parameter for dense region decomposition>` : example -> -dense_alpha=0.7. **OBS**: this is the alpha parameter for dense region decomposition
+  - `-dense_beta=<optional, beta parameter for dense region decomposition>` : example -> -dense_beta=1. **OBS**: this is the beta parameter for dense region decomposition
+  - `-dense_gamma=<optional, gamma parameter for dense region decomposition>` : example -> -dense_gamma=5. **OBS**: this is the gamma parameter for dense region decomposition
+
 - `generate_tissuumaps.py` : generates TissUUmaps project for interactive visualization and quality control of the downstream analysis and cell segmentation. Uses the following parameters:
   - `-data=</path/to/images/folder>` : example -> -data=/home/lab/pipeline/data. **OBS**: this is the data folder
   - `-include_marker_images=<yes or no or list of present specific markers to display as image layers>` : example -> -include_marker_images=DAPI,SST,GORASP2. **OBS**: this includes the specified markers as image layers in the TissUUmaps project. If this is not set, no image layers will be included
@@ -194,6 +205,8 @@ There are currently available the following commands:
     #need full TissUUmaps integration, with cluster
 
     generate_geojson.py -data=/home/lab/pipeline/data -expand=yes
+
+    dot_extraction.py -data=/home/lab/pipeline/ -marker=DO -voxel_size=103 -spot_radius=150 -cluster_radius=350 -cluster_nb_min_spots=4 -dense_alpha=0.7 -dense_beta=1 -dense_gamma=5
 
     generate_tissuumaps.py -data=/home/lab/pipeline/data -include_marker_images=DAPI,CDH1,HLA-DR,CHGA,KRT5 -include_geojson=yes -compress_geojson=yes -include_html=yes
 </code>
