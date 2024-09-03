@@ -24,7 +24,7 @@ from skimage.transform import resize
 
 
 PIL.Image.MAX_IMAGE_PIXELS = 10000000000
-pipex_max_resolution = 30000
+pipex_max_resolution = 100000
 pipex_scale_factor = 0
 pipex_img_bit_depth = 255
 data_folder = os.environ.get('PIPEX_DATA')
