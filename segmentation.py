@@ -22,7 +22,7 @@ from skimage.transform import resize
 
 
 PIL.Image.MAX_IMAGE_PIXELS = 10000000000
-pipex_max_resolution = 30000
+pipex_max_resolution = 100000
 if "PIPEX_MAX_RESOLUTION" in os.environ:
     pipex_max_resolution = int(os.environ.get('PIPEX_MAX_RESOLUTION'))
 pipex_scale_factor = 0
@@ -342,9 +342,7 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig, custom_img_orig):
     except:
         pass
     
-    print(">>> Final joined segmentation result image over nuclei saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
-
-    sdLabelsExpandedBinary = np.copy(sdLabelsExpanded)
+    sdLabelsExpandedBinary = np.copy(sd_labels_expanded)
     sdLabelsExpandedBinary[sdLabelsExpandedBinary > 0] = 1
     imsave(data_folder + "/analysis/segmentation_binary_mask.tif", np.uint8(sdLabelsExpandedBinary * 255))
     del sdLabelsExpandedBinary
