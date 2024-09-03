@@ -26,3 +26,4 @@ TissUUmaps==3.2.1.11
 lxml==5.1.0
 hilbertcurve==2.0.5
 py-lmd==1.0.0
+imagecodecs==2024.1.1
