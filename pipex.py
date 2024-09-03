@@ -72,7 +72,7 @@ def batch_processor():
             except Exception:
                 pass
 
-            if curr_command.index('-data=') > 0:
+            if curr_command.find('-data=') > 0:
                 arg_start_index = curr_command.index('-data=') + 6
                 end_char = ' '
                 if curr_command[arg_start_index:arg_start_index + 1] == '\'':
