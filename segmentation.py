@@ -148,13 +148,19 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig):
 
     im = PIL.Image.fromarray((render_label(sdLabels, img=None) * 255).astype(np.uint8))
     im = im.convert('RGB')
-    im.save(data_folder + "/analysis/quality_control/stardist_result.jpg")
+    try:
+        im.save(data_folder + "/analysis/quality_control/stardist_result.jpg")
+    except:
+        pass
     print(">>> Stardist base result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
 
     #if nuclei_expansion parameter is required, expand labelled regions (avoiding overlap) to specified size
     if nuclei_expansion >= 0:
         sdLabelsExpanded = expand_labels(sdLabels, distance=nuclei_expansion)
-        imsave(data_folder + "/analysis/quality_control/stardist_result_expanded.jpg", np.uint8(mark_boundaries(nuclei_img_orig, sdLabelsExpanded) * 255))
+        try:
+            imsave(data_folder + "/analysis/quality_control/stardist_result_expanded.jpg", np.uint8(mark_boundaries(nuclei_img_orig, sdLabelsExpanded) * 255))
+        except:
+            pass
         print(">>> Stardist expanded result image saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
     else:
         sdLabelsExpanded = sdLabels
@@ -300,10 +306,12 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig):
 
     np.save(data_folder + '/analysis/segmentation_data.npy', sdLabelsExpanded)
     print(">>> Final joined segmentation result numpy binary data saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
-
-    imsave(data_folder + "/analysis/segmentation_mask_show.jpg", np.uint8(mark_boundaries(nuclei_img_orig, sdLabelsExpanded) * 255))
-    print(">>> Final joined segmentation result image over nuclei saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
-
+    try:
+        imsave(data_folder + "/analysis/segmentation_mask_show.jpg", np.uint8(mark_boundaries(nuclei_img_orig, sdLabelsExpanded) * 255))
+        print(">>> Final joined segmentation result image over nuclei saved =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
+    except:
+        pass
+    
     sdLabelsExpandedBinary = np.copy(sdLabelsExpanded)
     sdLabelsExpandedBinary[sdLabelsExpandedBinary > 0] = 1
     imsave(data_folder + "/analysis/segmentation_binary_mask.tif", np.uint8(sdLabelsExpandedBinary * 255))

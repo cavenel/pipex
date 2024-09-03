@@ -133,11 +133,14 @@ def data_calculations():
     plt.close()
 
     #We calculate and plot the dendogram of the correlations clustermap
-    plt.figure()
-    sns_clustermap = sns.clustermap(df_corr, figsize=(7,5))
-    plt.savefig(data_folder + '/analysis/downstream/correlation_dendogram.jpg')
-    plt.clf()
-    plt.close()
+    try:
+        plt.figure()
+        sns_clustermap = sns.clustermap(df_corr, figsize=(7,5))
+        plt.savefig(data_folder + '/analysis/downstream/correlation_dendogram.jpg')
+        plt.clf()
+        plt.close()
+    except:
+        print ("Impossible to plot correlation_dendogram.jpg")
 
     #We mark the zeroes as NaN to calculate mean, std, quartiles, etc... only over the cells that have the marker expressed
     #for marker in markers:
