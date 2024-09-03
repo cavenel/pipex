@@ -19,7 +19,7 @@ pipex_max_resolution = 30000
 if "PIPEX_MAX_RESOLUTION" in os.environ:
     pipex_max_resolution = int(os.environ.get('PIPEX_MAX_RESOLUTION'))
 pipex_scale_factor = 0
-data_folder = './data'
+data_folder = os.environ.get('PIPEX_DATA')
 preprocess_markers = []
 
 thres_min = 0.0
@@ -471,8 +471,11 @@ if __name__ =='__main__':
     except OSError as error:
         print('>>> preprocessed folder already exists, overwriting results', flush=True)
 
-    for file in os.listdir(data_folder):
+    tile_data = {}
+    gradient_data = []
+    for file in sorted(os.listdir(data_folder)):
         file_path = os.path.join(data_folder, file)
+        # if fnmatch.fnmatch(file, '*Empty.*') or fnmatch.fnmatch(file, '*Blank.*') or
         if os.path.isdir(file_path):
             continue
 
