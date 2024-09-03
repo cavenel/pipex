@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 import diplib as dip
 import skimage as sk
-import geojson
+import json
+from tqdm import tqdm
 
 
 data_folder = os.environ.get('PIPEX_DATA')
@@ -82,12 +83,13 @@ if __name__ =='__main__':
         borders[chaincode.objectID] = np.array(chaincode.Polygon()).tolist()
     print(">>> Labelled regions to approximate polygons conversion finished =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
 
+    # Filter the DataFrame once
+    filtered_df = df[df['cell_id'].isin(borders)]
+
     #generating geojson data to import in qupath
     GEOdata = []
-    for label in borders:
-        if (label not in df['cell_id'].values):
-            continue
-        cell_row = (df['cell_id'] == label)
+    for label in tqdm(filtered_df['cell_id'].unique()):
+        row = filtered_df[filtered_df['cell_id'] == label].iloc[0]
         final_coords = borders[label]
         final_coords.append(final_coords[0])
         cell_data = {}
@@ -108,19 +110,19 @@ if __name__ =='__main__':
         for marker in markers:
             cell_data["properties"]["measurements"].append({
                 "name" : marker,
-                "value" : str(df[cell_row][marker].values[0])
+                "value" : str(row[marker])
                 })
 
         #if cluster_id parameter is selected, add cluster_id and cluster_color
-        if cluster_id != '' and len(df[cell_row][cluster_id]) > 0:
+        if cluster_id != '' and len(row[cluster_id]) > 0:
             cell_data["properties"]["classification"] = {
-                "name": str(df[cell_row][cluster_id].values[0]),
-                "colorRGB": str(df[cell_row][cluster_color].values[0] if cluster_color != '' else '')
+                "name": str(row[cluster_id]),
+                "colorRGB": str(row[cluster_color] if cluster_color != '' else '')
                 }
         GEOdata.append(cell_data)
-
+    print ("Saving to file")
     #dump GEOdata variable to json file
     with open(data_folder + '/analysis/cell_segmentation_geo.json', 'w') as outfile:
-        geojson.dump(GEOdata, outfile)
+        json.dump(GEOdata, outfile)
 
     print(">>> End time generate_geojson =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
