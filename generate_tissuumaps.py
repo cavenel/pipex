@@ -7,6 +7,8 @@ import sys
 from skimage.measure import approximate_polygon
 import numpy as np
 import struct
+from tifffile import TiffFile, TiffWriter
+from xml.etree import ElementTree
 
 data_folder = os.environ.get('PIPEX_DATA')
 include_marker_images = "no"
@@ -36,7 +38,20 @@ def exporting_tissuumaps ():
     elif include_marker_images == "no":
         markers = []
     else:
-        markers = [v for v in adata.var_names if v in include_marker_images.split(",")]
+        markers = include_marker_images.split(",")
+    
+    qptiff_files = [f for f in os.listdir(data_folder) if f.endswith(".qptiff")]
+    if len(qptiff_files) > 0:
+        with TiffFile(os.path.join(data_folder, qptiff_files[0])) as tif:
+            for page in tif.series[0].pages:
+                biomarker = ElementTree.fromstring(page.description).find('Biomarker').text
+                print (biomarker, markers)
+                if biomarker in markers:
+                    with TiffWriter(os.path.join(data_folder, f'{biomarker}.tif'), bigtiff=False) as tif:
+                        tif.write(page.asarray())
+                    #with open(os.path.join(data_folder, f'{biomarker}.tif'), 'wb') as f:
+                    #    f.write(page.asarray())
+
     if include_geojson == "yes" and include_marker_images != "no":
         if compress_geojson == "yes":
             import geobuf
@@ -97,7 +112,71 @@ def exporting_tissuumaps ():
         ]
     else:
         regionFiles = []
+    #check if adata.uns["PLA_spots"] exists
+    if "PLA_spots" in adata.uns:
+        markerFiles = [
+            {
+                "title": "Detected PLA spots",
+                "name": "Detected PLA spots",
+                "autoLoad": False,
+                "hideSettings": True,
+                "uid": "RawSpots",
+                "expectedHeader": {
+                    "X": "/uns/PLA_spots/x",
+                    "Y": "/uns/PLA_spots/y",
+                    "gb_col": "",
+                    "gb_name": "",
+                    "cb_cmap": "",
+                    "cb_col": "",
+                    "cb_gr_dict": "{\"All\":\"#ffff00\"}",
+                    "scale_col": "",
+                    "scale_factor": 0.1,
+                    "coord_factor": 1,
+                    "pie_col": "",
+                    "pie_dict": "",
+                    "shape_col": "",
+                    "shape_fixed": "disc",
+                    "shape_gr_dict": "",
+                    "edges_col": "/obsp/spatial_connectivities;join",
+                    "collectionItem_col": "",
+                    "collectionItem_fixed": "0",
+                    "opacity_col": "",
+                    "opacity": 1,
+                    "stroke_width": 5.5,
+                    "sortby_col": "",
+                    "z_order": 1,
+                    "tooltip_fmt": ""
+                },
+                "expectedRadios": {
+                    "cb_col": False,
+                    "cb_gr": True,
+                    "cb_gr_rand": False,
+                    "cb_gr_dict": True,
+                    "cb_gr_key": False,
+                    "pie_check": False,
+                    "scale_check": False,
+                    "shape_col": False,
+                    "shape_gr": False,
+                    "shape_gr_rand": True,
+                    "shape_gr_dict": False,
+                    "shape_fixed": True,
+                    "opacity_check": False,
+                    "_no_outline": False,
+                    "no_fill": True,
+                    "collectionItem_col": False,
+                    "collectionItem_fixed": True,
+                    "sortby_check": False,
+                    "sortby_desc_check": False,
+                    "edges_check": False
+                },
+                "path": "data/files/anndata_TissUUmaps.h5ad",
+                "fromButton": 3
+                }
+        ]
+    else:
+        markerFiles = []
     adata.uns["tmap"] = json.dumps({
+        "markerFiles": markerFiles, 
         "layers": [
             {
                 "name": f"{marker}",
