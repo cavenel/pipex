@@ -81,7 +81,10 @@ def batch_processor():
                 elif curr_command[arg_start_index:arg_start_index + 1] == '\"':
                     end_char = '\"'
                     arg_start_index = arg_start_index + 1
-                arg_end_index = curr_command.index(end_char, arg_start_index + 1)
+                try:
+                    arg_end_index = curr_command.index(end_char, arg_start_index + 1)
+                except ValueError:
+                    arg_end_index = len(curr_command)
                 curr_data_folder = curr_command[arg_start_index:arg_end_index].strip()
                 shutil.copyfile(log_filename, curr_data_folder + '/' + os.path.basename(log_filename))
  
