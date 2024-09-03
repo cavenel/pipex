@@ -39,10 +39,10 @@ def options(argv):
             spot_radius = int(arg[13:])
         elif arg.startswith('-cluster_radius='):
             global cluster_radius
-            cluster_radius = int(arg[15:])
+            cluster_radius = int(arg[16:])
         elif arg.startswith('-cluster_nb_min_spots='):
             global cluster_nb_min_spots
-            cluster_nb_min_spots = int(arg[22:])
+            cluster_nb_min_spots = int(arg[33:])
         elif arg.startswith('-dense_alpha='):
             global dense_alpha
             dense_alpha = float(arg[13:])
@@ -100,15 +100,17 @@ if __name__ == '__main__':
 
         # Load segmentation data into numpy array format
         labels = np.load(os.path.join(data_folder, 'analysis', 'segmentation_data.npy'))
-        df = pd.read_csv(os.path.join(data_folder, 'analysis', 'cell_data.csv'))
-        try:
-            df.drop(columns=['dots_count', 'dots_density'], inplace=True)
-        except:
-            pass
+        df = pd.read_csv(os.path.join(data_folder, 'analysis', 'downstream', 'cell_data_norm.csv'))
+        for col in ['dots_spots_count', 'dots_spots_density', 'dots_clusters_count', 'dots_clusters_sum']:
+            if col in df.columns:
+                df.drop(columns=[col], inplace=True)
 
         # Create a dataframe that will map each label to its count and size
         mapping_df = pd.DataFrame(df['cell_id'])
-        mapping_df['dots_count'] = 0
+        mapping_df['dots_spots_count'] = 0
+        mapping_df['dots_clusters_count'] = 0
+        mapping_df['dots_clusters_sum'] = 0
+        
         mapping_df.set_index('cell_id', inplace=True)
 
         # Update the count
@@ -117,19 +119,29 @@ if __name__ == '__main__':
             y = int(spots_df.loc[i, 'y'])
             label = labels[y, x]
             if label in mapping_df.index:
-                mapping_df.loc[label, 'dots_count'] += 1
+                mapping_df.loc[label, 'dots_spots_count'] += 1
+        for i in clusters_df.index:
+            x = int(clusters_df.loc[i, 'x'])
+            y = int(clusters_df.loc[i, 'y'])
+            size = int(clusters_df.loc[i, 'size'])
+            label = labels[y, x]
+            if label in mapping_df.index:
+                mapping_df.loc[label, 'dots_clusters_count'] += 1
+                mapping_df.loc[label, 'dots_clusters_sum'] += size
 
         # Merge the count and size data back to the main dataframe
         df = df.merge(mapping_df, how='inner', left_on='cell_id', right_index=True)
         
         # Calculate dots density
-        df['dots_density'] = df['dots_count'] / df['size']
+        df['dots_spots_density'] = df['dots_spots_count'] / df['size']
 
         # Save df to file
-        df.to_csv(os.path.join(data_folder, 'analysis', 'cell_data.csv'), index=False)
-        
-        adata.obs['dots_count'] = df['dots_count'].values.astype(int)
-        adata.obs['dots_density'] = df['dots_density'].values.astype(float)
+        df.to_csv(os.path.join(data_folder, 'analysis', 'downstream', 'cell_data_norm.csv'), index=False)
+
+        adata.obs['dots_spots_count'] = df['dots_spots_count'].values.astype(int)
+        adata.obs['dots_spots_density'] = df['dots_spots_density'].values.astype(float)
+        adata.obs['dots_clusters_count'] = df['dots_clusters_count'].values.astype(int)
+        adata.obs['dots_clusters_sum'] = df['dots_clusters_sum'].values.astype(int)
 
         adata.write_h5ad(rf"{data_folder}/analysis/downstream/anndata.h5ad")
     
