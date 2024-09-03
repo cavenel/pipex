@@ -11,17 +11,47 @@ import anndata
 import matplotlib.pyplot as plt
 
 data_folder = os.environ.get('PIPEX_DATA')
-
+spot_marker = ""
+voxel_size = 103
+spot_radius = 150
+cluster_radius = 350
+cluster_nb_min_spots = 4
+dense_alpha = 0.7
+dense_beta = 1
+dense_gamma = 5
 
 def options(argv):
     for arg in argv:
         if arg.startswith('-help'):
-            print('Usage: \n\t-data=<optional /path/to/images/folder, defaults to /home/pipex/data> : example -> -data=/lab/projectX/images', flush=True)
+            print('Usage: \n\t-data=<optional /path/to/images/folder, defaults to /home/pipex/data> : example -> -data=/lab/projectX/images \n\t-spot_marker=<optional, name of the spot marker> : example -> -spot_marker=AMY2A \n\t-voxel_size=<optional, size of the voxel in nm, defaults to 103> : example -> -voxel_size=103 \n\t-spot_radius=<optional, radius of the spot in nm, defaults to 150> : example -> -spot_radius=150 \n\t-cluster_radius=<optional, radius of the cluster in nm, defaults to 350> : example -> -cluster_radius=350 \n\t-cluster_nb_min_spots=<optional, minimum number of spots in a cluster, defaults to 4> : example -> -cluster_nb_min_spots=4 \n\t-dense_alpha=<optional, alpha parameter for dense region decomposition, defaults to 0.7> : example -> -dense_alpha=0.7 \n\t-dense_beta=<optional, beta parameter for dense region decomposition, defaults to 1> : example -> -dense_beta=1 \n\t-dense_gamma=<optional, gamma parameter for dense region decomposition, defaults to 5> : example -> -dense_gamma=5', flush=True)
             sys.exit()
         elif arg.startswith('-data='):
             global data_folder
             data_folder = arg[6:]
-
+        elif arg.startswith('-spot_marker='):
+            global spot_marker
+            spot_marker = arg[13:]
+        elif arg.startswith('-voxel_size='):
+            global voxel_size
+            voxel_size = int(arg[12:])
+        elif arg.startswith('-spot_radius='):
+            global spot_radius
+            spot_radius = int(arg[13:])
+        elif arg.startswith('-cluster_radius='):
+            global cluster_radius
+            cluster_radius = int(arg[15:])
+        elif arg.startswith('-cluster_nb_min_spots='):
+            global cluster_nb_min_spots
+            cluster_nb_min_spots = int(arg[22:])
+        elif arg.startswith('-dense_alpha='):
+            global dense_alpha
+            dense_alpha = float(arg[13:])
+        elif arg.startswith('-dense_beta='):
+            global dense_beta
+            dense_beta = float(arg[12:])
+        elif arg.startswith('-dense_gamma='):
+            global dense_gamma
+            dense_gamma = int(arg[13:])
 
 if __name__ == '__main__':
     options(sys.argv[1:])
@@ -35,26 +65,26 @@ if __name__ == '__main__':
 
     print(">>> Start time dot_extraction =", datetime.datetime.now().strftime("%H:%M:%S"), flush=True)
     qptiff_files = [f for f in os.listdir(data_folder) if f.endswith(".qptiff")]
-    if len(qptiff_files) > 0 or os.path.isfile(os.path.join(data_folder, "DO.tif")):
-        if (not os.path.isfile(os.path.join(data_folder, "DO.tif"))):
+    if len(qptiff_files) > 0 or os.path.isfile(os.path.join(data_folder, spot_marker + ".tif")):
+        if (not os.path.isfile(os.path.join(data_folder, spot_marker + ".tif"))):
             with TiffFile(os.path.join(data_folder, qptiff_files[0])) as tif:
                 for page in tif.series[0].pages:
                     biomarker = ElementTree.fromstring(page.description).find('Biomarker').text
-                    if biomarker == "DO":
+                    if biomarker == spot_marker:
                         if not os.path.isfile(os.path.join(data_folder, f'{biomarker}.tif')):
                             with TiffWriter(os.path.join(data_folder, f'{biomarker}.tif'), bigtiff=False) as tif:
                                 tif.write(page.asarray())
 
-        # read DO image:
-        img = imread(os.path.join(data_folder, "DO.tif"))
-        img_name = "DO"
+        # read spot_marker image:
+        img = imread(os.path.join(data_folder, spot_marker + ".tif"))
+        img_name = spot_marker
         # Convert to int32
         img = img.astype(np.uint16)
-        spots, threshold = detection.detect_spots(images=img, return_threshold=True, voxel_size=(103, 103), spot_radius=(150, 150))
+        spots, threshold = detection.detect_spots(images=img, return_threshold=True, voxel_size=(voxel_size, voxel_size), spot_radius=(spot_radius, spot_radius))
 
-        spots_post_decomposition, dense_regions, reference_spot = detection.decompose_dense(image=img, spots=spots, voxel_size=(103, 103), spot_radius=(150, 150), alpha=0.7, beta=1, gamma=5)
+        spots_post_decomposition, dense_regions, reference_spot = detection.decompose_dense(image=img, spots=spots, voxel_size=(voxel_size, voxel_size), spot_radius=(spot_radius, spot_radius), alpha=dense_alpha, beta=dense_beta, gamma=dense_gamma)
 
-        spots_post_clustering, clusters = detection.detect_clusters(spots=spots_post_decomposition, voxel_size=(103, 103), radius=350, nb_min_spots=4)
+        spots_post_clustering, clusters = detection.detect_clusters(spots=spots_post_decomposition, voxel_size=(voxel_size, voxel_size), radius=cluster_radius, nb_min_spots=cluster_nb_min_spots)
 
         path = rf"{data_folder}/analysis/downstream/{img_name}_spots.csv"
         spots_df = pd.DataFrame(spots_post_clustering, columns=["y", "x", "cluster"])
@@ -65,19 +95,20 @@ if __name__ == '__main__':
 
         # Add to adata object "F:\projects\SBPDA23\small\analysis\downstream\anndata_TissUUmaps.h5ad"
         adata = anndata.read_h5ad(rf"{data_folder}/analysis/downstream/anndata.h5ad")
-        adata.uns["PLA_spots"] = spots_df
-        adata.uns["PLA_clusters"] = clusters_df
+        adata.uns["dots_spots"] = spots_df
+        adata.uns["dots_clusters"] = clusters_df
 
         # Load segmentation data into numpy array format
         labels = np.load(os.path.join(data_folder, 'analysis', 'segmentation_data.npy'))
         df = pd.read_csv(os.path.join(data_folder, 'analysis', 'cell_data.csv'))
         try:
-            df.drop(columns=['PLA_count', 'PLA_density'], inplace=True)
+            df.drop(columns=['dots_count', 'dots_density'], inplace=True)
         except:
             pass
+
         # Create a dataframe that will map each label to its count and size
         mapping_df = pd.DataFrame(df['cell_id'])
-        mapping_df['PLA_count'] = 0
+        mapping_df['dots_count'] = 0
         mapping_df.set_index('cell_id', inplace=True)
 
         # Update the count
@@ -86,64 +117,20 @@ if __name__ == '__main__':
             y = int(spots_df.loc[i, 'y'])
             label = labels[y, x]
             if label in mapping_df.index:
-                mapping_df.loc[label, 'PLA_count'] += 1
+                mapping_df.loc[label, 'dots_count'] += 1
 
         # Merge the count and size data back to the main dataframe
         df = df.merge(mapping_df, how='inner', left_on='cell_id', right_index=True)
         
-        # Calculate PLA density
-        df['PLA_density'] = df['PLA_count'] / df['size']
+        # Calculate dots density
+        df['dots_density'] = df['dots_count'] / df['size']
 
         # Save df to file
         df.to_csv(os.path.join(data_folder, 'analysis', 'cell_data.csv'), index=False)
         
-        adata.obs['PLA_count'] = df['PLA_count'].values.astype(int)
-        adata.obs['PLA_density'] = df['PLA_density'].values.astype(float)
+        adata.obs['dots_count'] = df['dots_count'].values.astype(int)
+        adata.obs['dots_density'] = df['dots_density'].values.astype(float)
 
         adata.write_h5ad(rf"{data_folder}/analysis/downstream/anndata.h5ad")
     
-    adata = anndata.read_h5ad(rf"{data_folder}/analysis/downstream/anndata.h5ad")
-
-    # Compute the distribution of the intensity of the markers
-    
-    values_PD1 = adata.X[:, np.where(adata.var.index == "PD-1")].flatten().copy()
-    values_PDL1 = adata.X[:, np.where(adata.var.index == "PD-L1")].flatten().copy()
-    values_minPD1PDL1 = np.minimum(values_PD1, values_PDL1)
-    values_timesPD1PDL1 = values_PD1 * values_PDL1
-
-    markers = {
-        "PD-1": values_PD1,
-        "PD-L1": values_PDL1,
-        "Min of PD-1 and PD-L1": values_minPD1PDL1,
-        "PD-1 x PD-L1": values_timesPD1PDL1
-    }
-    fig, ax = plt.subplots(4, 2, figsize=(20, 20))
-    for marker_index, (marker_name, marker) in enumerate(markers.items()):
-        #Compute distribution of marker weigthed by PLA_count values:
-        
-        # Get the PLA count values
-        counts = adata.obs["PLA_count"].to_numpy().copy()
-        # Compute the weighted distribution
-        weighted_values = np.repeat(marker, counts)
-        # Compute the distribution
-        distribution = np.histogram(weighted_values, bins=20, range=(0, 20), density=True)
-        # Plot the distribution as bars
-        ax[marker_index, 0].bar(distribution[1][:-1], distribution[0], width=distribution[1][1]-distribution[1][0])
-        ax[marker_index, 0].set_xlim(-1, 20)
-        ax[marker_index, 0].set_xlabel("Weighted intensity")
-        ax[marker_index, 0].set_ylabel("Density")
-        ax[marker_index, 0].set_title(f"Weighted distribution of {marker_name} intensity")
-        
-        # Plot distribution of marker for all cells:
-
-        distribution = np.histogram(marker, bins=20, range=(0, 20), density=True)
-
-        ax[marker_index, 1].bar(distribution[1][:-1], distribution[0], width=distribution[1][1]-distribution[1][0])
-        ax[marker_index, 1].set_xlim(-1, 20)
-        ax[marker_index, 1].set_xlabel("Intensity")
-        ax[marker_index, 1].set_ylabel("Density")
-        ax[marker_index, 1].set_title(f"Distribution of {marker_name} intensity")
-    plt.tight_layout()
-    plt.savefig(os.path.join(data_folder, 'analysis', 'downstream', 'intensity_distribution.png'))
-
-    print(">>> End time dot_extraction =", datetime.datetime.now().strftime("%H:%M:%S"), flush=True)
+    print(">>> End time dot_extraction =", datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), flush=True)
