@@ -79,21 +79,21 @@ def batch_processor():
                 except Exception:
                     pass
 
-                if curr_command.index('-data=') > 0:
-                    arg_start_index = curr_command.index('-data=') + 6
-                    end_char = ' '
-                    if curr_command[arg_start_index:arg_start_index + 1] == '\'':
-                        end_char = '\''
-                        arg_start_index = arg_start_index + 1
-                    elif curr_command[arg_start_index:arg_start_index + 1] == '\"':
-                        end_char = '\"'
-                        arg_start_index = arg_start_index + 1
-                    arg_end_index = curr_command.index(end_char, arg_start_index + 1)
-                    curr_data_folder = curr_command[arg_start_index:arg_end_index].strip()
-                    if os.path.exists(log_filename):
-                        shutil.copyfile(log_filename, os.path.join(curr_data_folder, os.path.basename(log_filename)))
-
-        batch_file.close()
+            if curr_command.index('-data=') > 0:
+                arg_start_index = curr_command.index('-data=') + 6
+                end_char = ' '
+                if curr_command[arg_start_index:arg_start_index + 1] == '\'':
+                    end_char = '\''
+                    arg_start_index = arg_start_index + 1
+                elif curr_command[arg_start_index:arg_start_index + 1] == '\"':
+                    end_char = '\"'
+                    arg_start_index = arg_start_index + 1
+                arg_end_index = curr_command.index(end_char, arg_start_index + 1)
+                curr_data_folder = curr_command[arg_start_index:arg_end_index].strip()
+                if os.path.exists(log_filename):
+                    shutil.copyfile(log_filename, os.path.join(curr_data_folder, os.path.basename(log_filename)))
+ 
+    batch_file.close()
 
     except Exception as e:
         print(e)
