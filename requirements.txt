@@ -27,4 +27,5 @@ lxml==5.1.0
 hilbertcurve==2.0.5
 py-lmd==1.0.0
 imagecodecs==2024.1.1
+numcodec==0.15.1
 big-fish==0.6.2
