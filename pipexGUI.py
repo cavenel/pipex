@@ -152,7 +152,7 @@ column = [[sg.Text('PIPEX data folder:', font='any 12'), sg.In(default_text=data
           [sg.Checkbox('Dot extraction', font='any 12 bold', key='-BIGFISH-', enable_events=True)],
           [sg.Text(' NOTE: requires previous \'Segmentation\' results', pad=((20,0), (0,0)))],
           [sg.Text(' NOTE: requires previous \'Downstream analysis\' results', pad=((20,0), (0,0)))],
-          [sg.Text('  - Spot marker:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='AMY2A',s=20,disabled=True, key='-BIGFISH_SPOMAR-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_56)],
+          [sg.Text('  - Spot markers:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='AMY2A',s=20,disabled=True, key='-BIGFISH_SPOMAR-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_56)],
           [sg.Text('  - Voxel size:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='103',s=20,disabled=True, key='-BIGFISH_VOXSIZ-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_57)],
           [sg.Text('  - Spot radius:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='150',s=20,disabled=True, key='-BIGFISH_SPORAD-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_58)],
           [sg.Text('  - Dense alpha:',s=35, pad=((20,0), (0,0))), sg.Input(default_text='0.7',s=20,disabled=True, key='-BIGFISH_DENSALP-'), sg.Image(data=info_icon,subsample=3,tooltip=tooltip_59)],
