@@ -80,7 +80,11 @@ if __name__ == '__main__':
 
         img = imread(marker_file).astype(np.uint16)
         spots, _ = detection.detect_spots(images=img, return_threshold=True, voxel_size=(voxel_size, voxel_size), spot_radius=(spot_radius, spot_radius))
-        spots_post_decomposition, _, _ = detection.decompose_dense(image=img, spots=spots, voxel_size=(voxel_size, voxel_size), spot_radius=(spot_radius, spot_radius), alpha=dense_alpha, beta=dense_beta, gamma=dense_gamma)
+        try:
+            spots_post_decomposition, _, _ = detection.decompose_dense(image=img, spots=spots, voxel_size=(voxel_size, voxel_size), spot_radius=(spot_radius, spot_radius), alpha=dense_alpha, beta=dense_beta, gamma=dense_gamma)
+        except Exception as e:
+            print(f"Error during decomposition for marker {marker}: {e}", flush=True)
+            spots_post_decomposition = spots    
         spots_post_clustering, clusters = detection.detect_clusters(spots=spots_post_decomposition, voxel_size=(voxel_size, voxel_size), radius=cluster_radius, nb_min_spots=cluster_nb_min_spots)
 
         spots_df = pd.DataFrame(spots_post_clustering, columns=["y", "x", "cluster"])
