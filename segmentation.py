@@ -112,7 +112,7 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig, custom_img_orig):
                 if curr_detection.area > nuclei_area_limit:
                     sd_labels[sd_labels == curr_detection.label] = 0
 
-    im = PIL.Image.fromarray((render_label(sdLabels, img=None) * 255).astype(np.uint8))
+    im = PIL.Image.fromarray((render_label(sd_labels, img=None) * 255).astype(np.uint8))
     im = im.convert('RGB')
     try:
         im.save(os.path.join(data_folder, "analysis", "quality_control", "stardist_result.jpg"))
@@ -342,10 +342,10 @@ def cell_segmentation(nuclei_img_orig, membrane_img_orig, custom_img_orig):
     except:
         pass
     
-    sdLabelsExpandedBinary = np.copy(sd_labels_expanded)
-    sdLabelsExpandedBinary[sdLabelsExpandedBinary > 0] = 1
-    imsave(data_folder + "/analysis/segmentation_binary_mask.tif", np.uint8(sdLabelsExpandedBinary * 255))
-    del sdLabelsExpandedBinary
+    sdLabels_expanded_binary = np.copy(sd_labels_expanded)
+    sdLabels_expanded_binary[sdLabels_expanded_binary > 0] = 1
+    imsave(data_folder + "/analysis/segmentation_binary_mask.tif", np.uint8(sdLabels_expanded_binary * 255))
+    del sdLabels_expanded_binary
 
     if np.amax(sd_labels_expanded) <= 255:
         imsave(os.path.join(data_folder, "analysis", "segmentation_mask.tif"), np.uint8(sd_labels_expanded * 255))

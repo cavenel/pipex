@@ -441,7 +441,7 @@ if values['-QUPATH-']:
 if values['-BIGFISH-']:
     batch_list = (batch_list + '\n' +
         'dot_extraction.py -data=' + batch_data +
-        ' -spot_marker=' + values['-BIGFISH_SPOMAR-'] +
+        ' -spot_markers="' + values['-BIGFISH_SPOMAR-'] + '"' +
         ' -voxel_size=' + values['-BIGFISH_VOXSIZ-'] +
         ' -spot_radius=' + values['-BIGFISH_SPORAD-'] +
         ' -dense_alpha=' + values['-BIGFISH_DENSALP-'] +
