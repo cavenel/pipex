@@ -112,18 +112,23 @@ def exporting_tissuumaps ():
         ]
     else:
         regionFiles = []
+    markerFiles = []
     #check if adata.uns["PLA_spots"] exists
-    if "PLA_spots" in adata.uns:
-        markerFiles = [
+    for uns_key in adata.uns.keys():
+        print (f"Checking uns key: {uns_key}", flush=True)
+        # Check if uns_key ends in "_dots_spots"
+        if not uns_key.endswith("_dots_spots"):
+            continue
+        markerFiles += [
             {
-                "title": "Detected PLA spots",
-                "name": "Detected PLA spots",
+                "title": f"{uns_key}",
+                "name": f"{uns_key}",
                 "autoLoad": False,
                 "hideSettings": True,
                 "uid": "RawSpots",
                 "expectedHeader": {
-                    "X": "/uns/PLA_spots/x",
-                    "Y": "/uns/PLA_spots/y",
+                    "X": f"/uns/{uns_key}/x",
+                    "Y": f"/uns/{uns_key}/y",
                     "gb_col": "",
                     "gb_name": "",
                     "cb_cmap": "",
@@ -169,12 +174,11 @@ def exporting_tissuumaps ():
                     "sortby_desc_check": False,
                     "edges_check": False
                 },
-                "path": "data/files/anndata_TissUUmaps.h5ad",
+                "path": "./anndata_TissUUmaps.h5ad",
                 "fromButton": 3
                 }
         ]
-    else:
-        markerFiles = []
+    print (markerFiles)
     adata.uns["tmap"] = json.dumps({
         "markerFiles": markerFiles, 
         "layers": [
