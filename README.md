@@ -1,3 +1,5 @@
+(Note: This is a fork from https://github.com/CellProfiling/pipex to add spot detection using BigFish)
+
 PIPEX
 =====
 
